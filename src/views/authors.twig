@@ -1,0 +1,75 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+    <h2>
+        Authors [ <a class="create-author-btn" style="text-decoration: none;" href="#"> + </a> ]
+
+        <form class="d-inline-flex" role="search" action="/authors/search" method="GET">
+            <div class="input-group input-group-sm">
+                <input class="form-control" type="search" id="searchAuthorInput" name="q" placeholder="Search by author..." aria-label="Search" style="width: 180px;">
+                <button class="btn btn-outline-success" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </form>
+        <button id="mergeBtn" class="btn btn-warning" title="Merge these 2 authors">Merge</button>
+    </h2>
+</div>
+
+
+<!-- Pagination -->
+{% import "partials/pagination.twig" as pag %}
+
+<div class="d-flex justify-content-center">
+<!-- Pagination -->
+{{ pag.pagination(pagination, '/authors') }}
+</div>
+
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for author in authors %}
+            <tr>
+                <td data-entity="authors" data-merge="1" data-id="{{ author.id }}" data-name="{{ author.name }}">{{ author.id }}</td>
+
+                <td>
+			<a title="Search all authors like: {{ author.name }}"  href="/authors/search?q={{ author.name }}"><i class="bi bi-funnel"></i></a>
+			<a title="Show all books of the: {{ author.name }}"  href="/authors/{{ author.id }}">{{ author.name | escape }}</a>  
+		</td>
+                <td>
+                    <a title="Show all books from: {{ author.name }}"  class="book-author-btn"   href="/authors/{{ author.id }}"><i class="bi bi-bookmark"></i></a> &nbsp; 
+                    <a title="Edit author: {{ author.name }}"  class="edit-author-btn"   href="#" data-id="{{ author.id }}" data-name="{{ author.name | escape }}"><i class="bi bi-pencil"></i></a> &nbsp; 
+                    <a title="Delete author: {{ author.name }}"  class="delete-author-btn" href="#" data-id="{{ author.id }}" data-name="{{ author.name | escape }}"><i class="bi bi-trash"></i></a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="3" class="text-center">No authors found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-center">
+<!-- Pagination -->
+{{ pag.pagination(pagination, '/authors') }}
+</div>
+
+<!-- Include confirmation modal -->
+{% include 'partials/modal.twig' %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+     setInputFromQueryParam("searchAuthorInput");
+});
+</script>
+
+{% endblock %}

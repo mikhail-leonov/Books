@@ -1,0 +1,82 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+    <h2>
+        Groups [ <a class="create-group-btn" style="text-decoration: none;" href="#"> + </a> ]
+        <form class="d-inline-flex" role="search" action="/groups/search" method="GET">
+            <div class="input-group input-group-sm">
+                <input class="form-control" type="search" id="searchGroupInput" name="q" placeholder="Search by group..." aria-label="Search" style="width: 180px;">
+                <button class="btn btn-outline-success" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </form>
+
+        <button id="mergeBtn" class="btn btn-warning" title="Merge these 2 genres">Merge</button>
+
+    </h2>
+</div>
+
+
+
+
+<!-- Pagination -->
+{% import "partials/pagination.twig" as pag %}
+
+<div class="d-flex justify-content-center">
+<!-- Pagination -->
+{{ pag.pagination(pagination, '/groups') }}
+</div>
+
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            {# Add pagination controls #}
+            {% include "partials/pagination.twig" %}
+
+            {% for group in groups %}
+            <tr>
+                <td data-entity="groups" data-merge="1" data-id="{{ group.id }}" data-name="{{ group.name }}">{{ group.id }}</td>
+                <td>
+                    <a title="Search all groups like: {{ group.name }}"  href="/groups/search?q={{ group.name }}"><i class="bi bi-funnel"></i></a> 
+		    <a title="Show all books belongs to: {{ group.name }}"  href="/groups/{{ group.id }}">{{ group.name | escape }}</a> 
+                </td>
+                <td>
+                    <a title="Show all books from: {{ group.name }}"  class="book-group-btn"   href="/groups/{{ group.id }}"><i class="bi bi-bookmark"></i></a> &nbsp;
+                    <a title="Edit group: {{ group.name }}"  class="edit-group-btn"   href="#" data-id="{{ group.id }}" data-name="{{ group.name | escape }}"><i class="bi bi-pencil"></i></a> &nbsp;
+                    <a title="Delete group: {{ group.name }}"  class="delete-group-btn" href="#" data-id="{{ group.id }}" data-name="{{ group.name | escape }}"><i class="bi bi-trash"></i></a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="3" class="text-center">No groups found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-center">
+<!-- Pagination -->
+{{ pag.pagination(pagination, '/groups') }}
+</div>
+
+<!-- Include confirmation modal -->
+{% include 'partials/modal.twig' %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+     setInputFromQueryParam("searchGroupInput");
+});
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Book Import</h1>
+     
+    <div class="row mb-12">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">Tools</div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2">
+                        <form id="uploadForm" class="d-flex align-items-center gap-2 mb-0">
+                            <input type="file" class="form-control" id="fileInput" name="files" multiple accept=".fb2,.zip" style="min-width: 360px;">
+                            <button type="submit" id="uploadBtn" class="btn btn-success">Upload</button>
+                        </form>
+                        <button id="importBtn" class="btn btn-primary ms-auto">Import</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="card">
+        <div class="card-header">Log</div>
+        <div class="card-body">
+            <pre id="importLog" style="background:#1e1e1e; color:#0f0; padding:15px; height:400px; overflow:auto; font-family:monospace; white-space:pre-wrap;"></pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    const logEl = document.getElementById('importLog');
+    
+    function appendLog(msg) {
+        logEl.innerHTML += msg + '\n';
+        logEl.scrollTop = logEl.scrollHeight;
+    }
+
+const uploadForm = document.getElementById('uploadForm');
+if (uploadForm) {
+    uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fileInput = document.getElementById('fileInput');
+        const files = fileInput.files;
+        if (files.length === 0) {
+            appendLog('⚠️ No files selected.');
+            return;
+        }
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            // Send the file itself
+            formData.append('files', file);
+            // Send the original name base64‑encoded in a separate field
+            const encodedName = btoa(unescape(encodeURIComponent(file.name)));
+            formData.append('originalNames', encodedName);
+        }
+        const uploadBtn = document.getElementById('uploadBtn');
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = 'Uploading...';
+        appendLog(`📤 Uploading ${files.length} file(s)...`);
+        try {
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) {
+                appendLog(`✅ ${data.data.message}`);
+                fileInput.value = '';
+            } else {
+                appendLog(`❌ Upload failed: ${data.error}`);
+            }
+        } catch (err) {
+            appendLog(`❌ Upload error: ${err.message}`);
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = 'Upload Files';
+        }
+    });
+}
+</script>
+{% endblock %}

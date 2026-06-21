@@ -1,0 +1,96 @@
+{% set NO_SERIES = 'Без серии' %}
+{% set series = [NO_SERIES] %}
+
+{% for book in books %}
+    {% set seriesName = book.serie_name ?? book.series[0].name ?? null %}
+    {% if seriesName and seriesName not in series %}
+        {% set series = series|merge([seriesName]) %}
+    {% endif %}
+{% endfor %}
+
+<div class="container-fluid px-0">
+    {# No centering – full width #}
+    {% set global_index = 0 %}
+
+    {% for seriesName in series %}
+        {# First check: does any book belong to this series? #}
+        {% set has_books = false %}
+        {% for book in books %}
+            {% set bookSeriesName = book.serie_name ?? book.series[0].name ?? NO_SERIES %}
+            {% if bookSeriesName == seriesName %}
+                {% set has_books = true %}
+            {% endif %}
+        {% endfor %}
+
+        {# Only show series section if it has books #}
+        {% if has_books %}
+            <div class="fs-5 fw-bold mt-3 mb-2 pb-1 border-bottom border-2">
+                {{ seriesName }}
+            </div>
+
+            {% for book in books %}
+                {% set bookSeriesName = book.serie_name ?? book.series[0].name ?? NO_SERIES %}
+                {% if bookSeriesName == seriesName %}
+                    {% set global_index = global_index + 1 %}
+                    <div class="row align-items-start py-1 
+                                {{ global_index is even ? 'bg-light bg-opacity-25' : '' }}">
+                        
+                        <div class="col-12 col-md-8">
+                            <div class="d-flex flex-wrap align-items-baseline gap-1">
+                                <span class="me-1">–</span>
+                                {% if book.series and book.series|length > 0 and book.series[0].order %}
+                                    <span class="fw-bold me-1">{{ book.series[0].order }}.</span>
+                                {% else %}
+                                    <span class="me-1">x</span>
+                                {% endif %}
+                                <a href="/read/{{ book.id }}" 
+                                   class="text-decoration-none fw-semibold"
+                                   title="Read a book: {{ book.title | escape }}">
+                                    {{ book.title | escape }}
+                                </a>
+                                {% if book.series and book.series|length > 0 and book.series[0].order %}
+                                    <span class="text-muted">({{ book.series[0].order }})</span>
+                                {% endif %}
+
+                                <div class="text-muted small">
+                                    ( {% for genre in book.genres %}
+                                        <a title="Search all genres like: {{ genre.name }}" 
+                                           href="/genres/search?q={{ genre.name }}">
+                                            <i class="bi bi-funnel"></i>
+                                        </a>
+                                        <a title="Show all books belongs to: {{ genre.name }}" 
+                                           href="/genres/{{ genre.id }}">
+                                            {{ genre.name | escape }}
+                                        </a>{% if not loop.last %}, {% endif %}
+                                    {% endfor %} )
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4 text-md-end mt-1 mt-md-0">
+                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+
+                                <span class="text-muted">book: </span>
+                                <a href="/read/{{ book.id }}" class="text-decoration-none" title="Read a book: {{ book.title | escape }}">читать</a>
+                                <a href="/read/{{ book.id }}?format=fb2"  class="text-decoration-none" download title="Download FB2 format">fb2</a> 
+				<span class="like-btn text-primary" data-id="{{ book.id }}" data-liked="{{ book.liked ? '1' : '0' }}" style="cursor: pointer;" title="Like/Dislike">{{ book.liked ? '<b>liked</b>' : 'like' }}</span>
+                                <span class="text-muted">send: </span>
+                                <a href="#" class="email-book-btn text-decoration-none" data-mail="mikecommon@gmail.com" data-id="{{ book.id }}" title="Send by email" data-name="mike">mike</a> 
+                                <a href="#" class="email-book-btn text-decoration-none" data-mail="innaleonovav@gmail.com" data-id="{{ book.id }}" title="Send by email" data-name="inna">inna</a>
+                                <a href="#" class="email-book-btn text-decoration-none" data-mail="johnleonov98@gmail.com" data-id="{{ book.id }}" title="Send by email" data-name="ivan">ivan</a>
+                                <a href="#" class="email-book-btn text-decoration-none" data-mail="leonova.daria.2003@gmail.com" data-id="{{ book.id }}" title="Send by email" data-name="daria">daria</a>
+
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %} {# end if has_books #}
+    {% endfor %}
+
+    {% if books is empty %}
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-info-circle"></i> No books found.
+        </div>
+    {% endif %}
+</div>

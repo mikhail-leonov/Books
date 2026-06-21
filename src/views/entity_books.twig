@@ -1,0 +1,52 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+
+{% set baseUrl = '' %}
+{% if type == 'Author' %} {% set baseUrl = '/authors' %}
+{% elseif type == 'Series' %} {% set baseUrl = '/series' %}
+{% elseif type == 'Genre' %} {% set baseUrl = '/genres' %}
+{% elseif type == 'Group' %} {% set baseUrl = '/groups' %}
+{% elseif type == 'Book' %} {% set baseUrl = '/' %}
+{% endif %}
+
+{# Pagination needs the full path including entity ID #}
+{% set paginationBaseUrl = baseUrl ~ '/search' %}
+<h2>{{ type }}: 
+    <a title="Search all {{ type }} like: {{ entity.name }}"  
+       href="{{ paginationBaseUrl }}?q={{ entity.name }}">
+        {{ entity.name | escape }}
+    </a>
+</h2>
+
+
+<a href="/" class="btn btn-secondary mb-3">← Back to Home</a>
+
+{% import "partials/pagination.twig" as pag %}
+
+{% if type == 'Author' %}
+    {% include 'partials/_books_table_grouped.twig' %}
+{% else %}
+    {% include 'partials/_books_table.twig' %}
+{% endif %}
+
+<div class="d-flex justify-content-center">
+
+{% if type == 'Author' %}
+    {{ pag.pagination(pagination, '/authors/' ~ entity.id) }}
+{% elseif type == 'Series' %}
+    {{ pag.pagination(pagination, '/series/' ~ entity.id) }}
+{% elseif type == 'Genre' %}
+    {{ pag.pagination(pagination, '/genres/' ~ entity.id) }}
+{% elseif type == 'Group' %}
+    {{ pag.pagination(pagination, '/groups/' ~ entity.id) }}
+{% elseif type == 'Book' %}
+    {{ pag.pagination(pagination, '/' ~ entity.id) }}
+{% endif %}
+
+</div>
+
+<!-- Include confirmation modal -->
+{% include 'partials/modal.twig' %}
+
+{% endblock %}

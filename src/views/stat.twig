@@ -1,0 +1,60 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Database Statistics</h1>
+    <div class="card">
+        <div class="card-header">Record Counts per Table</div>
+        <div class="card-body">
+            <div style="background:#1e1e1e; color:#0f0; padding:15px; overflow:auto; font-family:monospace;">
+                <table class="table table-dark table-striped">
+                    <thead>
+                        <tr>
+                            <th>Table Name</th>
+                            <th>Record Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>books</td>
+                            <td>{{ stats.books|default('N/A')|number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td>authors</td>
+                            <td>{{ stats.authors|default('N/A')|number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td>genres</td>
+                            <td>{{ stats.genres|default('N/A')|number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td>series</td>
+                            <td>{{ stats.series|default('N/A')|number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td>groups</td>
+                            <td>{{ stats.groups|default('N/A')|number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td>book_authors</td>
+                            <td>{{ stats.book_authors|default('N/A')|number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td>book_genres</td>
+                            <td>{{ stats.book_genres|default('N/A')|number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td>book_groups</td>
+                            <td>{{ stats.book_groups|default('N/A')|number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td>book_series</td>
+                            <td>{{ stats.book_series|default('N/A')|number_format }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

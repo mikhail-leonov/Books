@@ -1,0 +1,160 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<div style="max-width: 100%; overflow-x: hidden;">
+
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1em; flex-wrap: wrap;">
+        <h2 style="word-wrap: break-word; max-width: 100%;">{{ book.title | escape }}</h2>
+        <a href="/" style="margin-left: auto;">← Back to Home</a>
+    </div>
+
+
+
+    <div style="margin-bottom: 1.5em; padding: 0.5em 0; border-top: 1px solid #dee2e6; border-bottom: 1px solid #dee2e6;">
+        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <span style="font-size: 0.9rem; font-weight: 500;">Groups:</span>
+            <div id="bookGroupsList" style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;">
+                {% if book.groups and book.groups|length > 0 %}
+                    {% for group in book.groups %}
+                        <div class="dropdown d-inline-block">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-group-id="{{ group.id }}">
+                                {{ group.name | escape }}
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item remove-group-item" href="#" data-group-id="{{ group.id }}">🗑 Delete</a></li>
+                            </ul>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <span class="text-muted small">No groups assigned</span>
+                {% endif %}
+            </div>
+
+            <div class="dropdown d-inline-block">
+                <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    + Assign group
+                </button>
+                <ul class="dropdown-menu" id="addGroupDropdown">
+                    {% for g in allGroups %}
+                        <li><a class="dropdown-item add-group-item" href="#" data-group-id="{{ g.id }}">{{ g.name | escape }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <button id="generateAiDesc" data-id="{{ book.id }}" class="btn btn-sm btn-outline-secondary" type="button">
+                AI Description
+            </button>
+
+        </div>
+    </div>
+
+    <!-- AI description result (rendered below the toolbar, not inside it) -->
+    <div id="aiDescription" style="display:none; margin-bottom: 1.5em;"></div>
+
+    <div style="background: white; padding: 2em; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-x: hidden; word-wrap: break-word;">
+        {{ formattedContent | raw }}
+    </div>
+</div>
+
+<script>
+    (function() {
+        const bookId = {{ book.id }};
+
+        async function sendRequest(url, method, body = null) {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: body ? JSON.stringify(body) : null
+            });
+            const data = await response.json();
+            if (!data.success) throw new Error(data.error || 'Request failed');
+            return data;
+        }
+
+        async function removeGroup(groupId, btnElement) {
+            try {
+                await sendRequest(`/api/books/${bookId}/group/${groupId}/0`, 'GET');
+                const dropdownDiv = btnElement.closest('.dropdown');
+                if (dropdownDiv) dropdownDiv.remove();
+                const container = document.getElementById('bookGroupsList');
+                if (container.children.length === 0) {
+                    container.innerHTML = '<span class="text-muted small">No groups assigned</span>';
+                }
+                showToast('Group removed', 'success');
+            } catch (err) {
+                showToast(err.message, 'danger');
+            }
+        }
+
+        async function addGroup(groupId) {
+            try {
+                await sendRequest(`/api/books/${bookId}/group/${groupId}/1`, 'GET');
+                window.location.reload();
+            } catch (err) {
+                showToast(err.message, 'danger');
+            }
+        }
+
+        function showToast(message, type) {
+            const toastDiv = document.createElement('div');
+            toastDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+            toastDiv.style.zIndex = '9999';
+            toastDiv.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+            document.body.appendChild(toastDiv);
+            setTimeout(() => toastDiv.remove(), 3000);
+        }
+
+        document.querySelectorAll('.remove-group-item').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const groupId = link.getAttribute('data-group-id');
+                const button = link.closest('.dropdown')?.querySelector('.dropdown-toggle');
+                if (groupId && button) removeGroup(groupId, button);
+            });
+        });
+
+        document.querySelectorAll('.add-group-item').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const groupId = link.getAttribute('data-group-id');
+                if (groupId) addGroup(groupId);
+            });
+        });
+    })();
+</script>
+
+
+<script>
+document.getElementById('generateAiDesc').addEventListener('click', async () => {
+    const btn = document.getElementById('generateAiDesc');
+    const originalLabel = btn.textContent.trim();
+    btn.disabled = true;
+    btn.textContent = 'Генерация...';
+    try {
+        const res = await fetch(`/api/books/${btn.dataset.id}/ai`, { method: 'POST' });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Request failed');
+
+        // Build the result with safe DOM APIs (no innerHTML) so model output
+        // can never inject markup/scripts into the page.
+        const descDiv = document.getElementById('aiDescription');
+        descDiv.replaceChildren();
+        const heading = document.createElement('h3');
+        heading.textContent = 'AI Описание';
+        const para = document.createElement('p');
+        para.style.whiteSpace = 'pre-line';
+        para.textContent = data.data.ai_description || '';
+        descDiv.appendChild(heading);
+        descDiv.appendChild(para);
+        descDiv.style.display = 'block';
+    } catch (err) {
+        alert('Ошибка: ' + (err && err.message ? err.message : 'unknown error'));
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalLabel;
+    }
+});
+</script>
+
+{% endblock %} 

@@ -1,0 +1,82 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+    <h2>
+        Series [ <a class="create-serie-btn" style="text-decoration: none;" href="#"> + </a> ]
+        <form class="d-inline-flex" role="search" action="/series/search" method="GET">
+            <div class="input-group input-group-sm">
+                <input class="form-control" type="search" id="searchSeriesInput" name="q" placeholder="Search by serie..." aria-label="Search" style="width: 180px;">
+                <button class="btn btn-outline-success" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </form>
+
+        <button id="mergeBtn" class="btn btn-warning" title="Merge these 2 genres">Merge</button>
+
+    </h2>
+</div>
+
+
+<!-- Pagination -->
+{% import "partials/pagination.twig" as pag %}
+
+<div class="d-flex justify-content-center">
+<!-- Pagination -->
+{{ pag.pagination(pagination, '/series') }}
+</div>
+
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            {# Add pagination controls #}
+            {% include "partials/pagination.twig" %}
+
+            {% for series in series %}
+            <tr>
+                <td data-entity="series" data-merge="1" data-id="{{ series.id }}" data-name="{{ series.name }}">{{ series.id }}</td>
+                <td> 
+                    <a title="Search all series like: {{ series.name }}" href="/series/search?q={{ series.name }}"><i class="bi bi-funnel"></i></a> 
+                    <a title="Show all books from: {{ series.name }}"  href="/series/{{ series.id }}">{{ series.name | escape }}</a>
+                </td>
+                <td>
+                    <a title="Show all books from: {{ series.name }}"  class="book-serie-btn"   href="/series/{{ series.id }}"><i class="bi bi-bookmark"></i></a> &nbsp; 
+                    <a title="Edit serie: {{ series.name }}"  class="edit-serie-btn"   href="#" data-id="{{ series.id }}" data-name="{{ series.name | escape }}"><i class="bi bi-pencil"></i></a> &nbsp; 
+                    <a title="Delete serie: {{ series.name }}"  class="delete-serie-btn" href="#" data-id="{{ series.id }}" data-name="{{ series.name | escape }}"><i class="bi bi-trash"></i></a>
+                </td>
+
+            </tr>
+            {% else %}
+            <tr><td colspan="3" class="text-center">No series found.</td></tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-center">
+<!-- Pagination -->
+{{ pag.pagination(pagination, '/series') }}
+</div>
+
+<!-- Include confirmation modal -->
+{% include 'partials/modal.twig' %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+     setInputFromQueryParam("searchSeriesInput");
+});
+</script>
+
+
+{% endblock %}

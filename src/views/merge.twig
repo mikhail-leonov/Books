@@ -1,0 +1,69 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+
+{% set tabs = [
+    { 'key': 'authors', 'label': 'Authors' },
+    { 'key': 'genres',  'label': 'Genres'  },
+    { 'key': 'groups',  'label': 'Groups'  },
+    { 'key': 'series',  'label': 'Series'  }
+] %}
+
+<h2 class="mb-2">Merge</h2>
+<p class="text-muted">
+    Search items, tick the ones you want to combine, then press <strong>Merge selected</strong>.
+    The first ticked item (top-most) is <strong>kept</strong>; the rest are merged into it and deleted,
+    with all of their books reassigned to the kept item.
+</p>
+
+<div id="mergePage">
+
+    <ul class="nav nav-tabs" role="tablist">
+        {% for t in tabs %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {{ loop.first ? 'active' : '' }}"
+                    id="tab-{{ t.key }}"
+                    data-bs-toggle="tab"
+                    data-bs-target="#pane-{{ t.key }}"
+                    type="button" role="tab"
+                    aria-controls="pane-{{ t.key }}"
+                    aria-selected="{{ loop.first ? 'true' : 'false' }}">
+                {{ t.label }}
+            </button>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <div class="tab-content border border-top-0 p-3 bg-white">
+        {% for t in tabs %}
+        <div class="tab-pane fade {{ loop.first ? 'show active' : '' }}"
+             id="pane-{{ t.key }}" data-type="{{ t.key }}" role="tabpanel" aria-labelledby="tab-{{ t.key }}">
+
+            <div class="row g-3">
+                {% for slot in [1, 2] %}
+                <div class="col-md-6 merge-search-col" data-slot="{{ slot }}">
+                    <div class="input-group input-group-sm mb-2">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="search" class="form-control merge-search-input"
+                               placeholder="Search {{ t.label|lower }} #{{ slot }}..."
+                               aria-label="Search {{ t.label }} {{ slot }}">
+                    </div>
+                    <ul class="list-group merge-results" style="max-height: 420px; overflow-y: auto;"></ul>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="d-flex align-items-center flex-wrap gap-3 mt-3">
+                <button type="button" class="btn btn-warning merge-selected-btn" disabled>&#8694; Merge selected</button>
+                <span class="merge-counter text-muted small"></span>
+                <span class="merge-status"></span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<script src="/js/merge.js"></script>
+
+{% endblock %}

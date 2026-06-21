@@ -1,0 +1,22 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+    {% import "partials/pagination.twig" as pag %}
+
+<div class="d-flex justify-content-center">
+    <!-- Pagination -->
+    {{ pag.pagination(pagination, '/') }}
+</div>
+
+    {% include "partials/_books_table.twig" %}
+    <br>
+    <br>
+
+<div class="d-flex justify-content-center">
+    <!-- Pagination -->
+    {{ pag.pagination(pagination, '/') }}
+</div>
+
+
+
+{% endblock %}
