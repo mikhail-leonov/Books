@@ -1,0 +1,7 @@
+-- Auto-generated group for sequence: Harry Potter (ID: 2810)
+
+INSERT IGNORE INTO `groups` (`name`, `description`) VALUES ('Harry Potter', 'Imported from libseqname');
+SET @gid = (SELECT `id` FROM `groups` WHERE `name` = 'Harry Potter' LIMIT 1);
+
+-- Link books ONLY IF they exist in the `books` table
+INSERT IGNORE INTO `book_groups` (`book_id`, `group_id`) SELECT `id`, @gid FROM `books` WHERE `id` IN (110907,110943,170894,170895,170896,170897,170898,172165,172166,172167,172168,172169,172170,172171,220648,456894,460662,460666,460672,467013,469710,470080,472724,472725,472726,472727,541636,766191,766192,766194,766195,766196,766197,766198,766199,766220,766226,766227,766233,766235,766236,766237) AND @gid IS NOT NULL;

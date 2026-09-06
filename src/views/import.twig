@@ -11,10 +11,12 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2">
                         <form id="uploadForm" class="d-flex align-items-center gap-2 mb-0">
-                            <input type="file" class="form-control" id="fileInput" name="files" multiple accept=".fb2,.zip" style="min-width: 360px;">
+                            <!-- Added .sql to the accepted file types -->
+                            <input type="file" class="form-control" id="fileInput" name="files" multiple accept=".fb2,.zip,.sql" style="min-width: 360px;">
                             <button type="submit" id="uploadBtn" class="btn btn-success">Upload</button>
                         </form>
-                        <button id="importBtn" class="btn btn-primary ms-auto">Import</button>
+                        <button id="importBtn" class="btn btn-primary ms-auto">Import Books</button>
+                        <button id="importGrp" class="btn btn-primary ms-auto">Import Groups</button>
                     </div>
                 </div>
             </div>
@@ -39,48 +41,77 @@
         logEl.scrollTop = logEl.scrollHeight;
     }
 
-const uploadForm = document.getElementById('uploadForm');
-if (uploadForm) {
-    uploadForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const fileInput = document.getElementById('fileInput');
-        const files = fileInput.files;
-        if (files.length === 0) {
-            appendLog('⚠️ No files selected.');
-            return;
-        }
-        const formData = new FormData();
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            // Send the file itself
-            formData.append('files', file);
-            // Send the original name base64‑encoded in a separate field
-            const encodedName = btoa(unescape(encodeURIComponent(file.name)));
-            formData.append('originalNames', encodedName);
-        }
-        const uploadBtn = document.getElementById('uploadBtn');
-        uploadBtn.disabled = true;
-        uploadBtn.textContent = 'Uploading...';
-        appendLog(`📤 Uploading ${files.length} file(s)...`);
-        try {
-            const res = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await res.json();
-            if (data.success) {
-                appendLog(`✅ ${data.data.message}`);
-                fileInput.value = '';
-            } else {
-                appendLog(`❌ Upload failed: ${data.error}`);
+    const uploadForm = document.getElementById('uploadForm');
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById('fileInput');
+            const files = fileInput.files;
+            
+            // Filter out .sql files from the standard book upload
+            const bookFiles = Array.from(files).filter(f => !f.name.toLowerCase().endsWith('.sql'));
+            
+            if (bookFiles.length === 0) {
+                appendLog('No book files (.fb2, .zip) selected.');
+                return;
             }
-        } catch (err) {
-            appendLog(`❌ Upload error: ${err.message}`);
-        } finally {
-            uploadBtn.disabled = false;
-            uploadBtn.textContent = 'Upload Files';
-        }
-    });
-}
+
+            const formData = new FormData();
+            for (let i = 0; i < bookFiles.length; i++) {
+                const file = bookFiles[i];
+                formData.append('files', file);
+                const encodedName = btoa(unescape(encodeURIComponent(file.name)));
+                formData.append('originalNames', encodedName);
+            }
+            
+            const uploadBtn = document.getElementById('uploadBtn');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Uploading...';
+            appendLog(`Uploading ${bookFiles.length} book file(s)...`);
+            
+            try {
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    appendLog(`${data.data.message}`);
+                    fileInput.value = '';
+                } else {
+                    appendLog(`Upload failed: ${data.error}`);
+                }
+            } catch (err) {
+                appendLog(`Upload error: ${err.message}`);
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = 'Upload';
+            }
+        });
+    }
+
+    // Handle Import Groups button
+    const importGrpBtn = document.getElementById('importGrp');
+    if (importGrpBtn) {
+        importGrpBtn.addEventListener('click', async () => {
+
+            importGrpBtn.disabled = true;
+            const originalText = importGrpBtn.textContent;
+            importGrpBtn.textContent = 'Importing Groups...';
+            
+            appendLog(`Starting group import SQL file(s)...`);
+
+            const res = await fetch('/api/import-groups', {
+              method: 'POST'
+            });
+
+            const data = await res.json();
+            console.log(data);
+
+            importGrpBtn.disabled = false;
+            importGrpBtn.textContent = originalText;
+            fileInput.value = ''; // Clear file selection after processing
+        });
+    }
 </script>
 {% endblock %}

@@ -1,0 +1,1 @@
+- Export content fb2 books as html files and genres/authors/etc as html files pointing to fb2 html files

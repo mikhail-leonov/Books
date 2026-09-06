@@ -6,5 +6,6 @@ const router = Router();
 router.post('/import/run', 		APIOtherController.runManualImport);
 router.post('/email-book/:id/:mail', 	APIOtherController.emailBook);
 router.post('/upload', 			APIOtherController.uploadFiles);
+router.post('/import-groups',           APIOtherController.importGroups);
 
 export default router;
