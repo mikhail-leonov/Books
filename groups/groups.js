@@ -5,6 +5,7 @@ const SEQNAME_FILE = 'lib.libseqname.sql';
 const SEQ_FILE = 'lib.libseq.sql';
 const OUTPUT_DIR = path.join(__dirname, 'groups');
 const MAPPING_FILE = 'mapping.json';
+const FULL_FILE = 'mapping-full.json';
 
 // Fallback bucket for any SeqId that has no SeqName in libseqname.
 const UNKNOWN_GROUP = 'Unknown';
@@ -169,6 +170,16 @@ function buildCategoryBooks(seqMap, seqBooks, reverseMapping) {
     return { categoryBooks, categorySeqIds };
 }
 
+function writeFullJson(categoryBooks, fullFilePath) {
+    const names = Array.from(categoryBooks.keys()).sort((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: 'base' })
+    );
+    try {
+        fs.writeFileSync(fullFilePath, JSON.stringify(names, null, 2) + '\n', 'utf-8');
+    } catch (err) {
+    }
+}
+
 function extractExistingBookIds(sqlContent) {
     const ids = new Set();
     const regex = /WHERE `id` IN \(([^)]*)\)/g;
@@ -240,6 +251,7 @@ function main() {
     const seqNamePath = path.join(sourceDir, SEQNAME_FILE);
     const seqPath     = path.join(sourceDir, SEQ_FILE);
     const mappingPath = path.join(sourceDir, MAPPING_FILE);
+    const fullPath    = path.join(sourceDir, FULL_FILE);
 
     if (!fs.existsSync(seqNamePath) || !fs.existsSync(seqPath)) {
         console.error(`Error: '${SEQNAME_FILE}' and '${SEQ_FILE}' must sit next to this script.`);
@@ -259,6 +271,8 @@ function main() {
 
     const { categoryBooks, categorySeqIds } = buildCategoryBooks(seqMap, seqBooks, reverseMapping);
     console.log(`Resolved to ${categoryBooks.size} categories after mapping.`);
+
+    writeFullJson(categoryBooks, fullPath);
 
     generateSqlFiles(categoryBooks, categorySeqIds, OUTPUT_DIR);
 }
